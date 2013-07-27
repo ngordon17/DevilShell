@@ -5,12 +5,16 @@ Custom shell written in C
 
 To run:
 
-cd into program directory
+1. cd into program directory
 
-make
+2. make
 
-./dsh
+3. ./dsh
 
-type in shell commands as you would normally.
+4. type in shell commands as you would normally.
 
 ex: cd, ls, grep, |, pwd, etc...
+
+
+
+See other README for implementation details.
