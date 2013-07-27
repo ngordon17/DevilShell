@@ -1,0 +1,111 @@
+/**********************************************
+ * Please DO NOT MODIFY the format of this file
+ **********************************************/
+
+/*************************
+ * Team Info & Time spent
+ *************************/
+
+	Name1: Nicholas Gordon 	// Edit this accordingly
+	NetId1: njg10	 	// Edit
+	Time spent: infinite time	// Edit 
+
+	Name2: Tori Reynolds 	// Edit this accordingly
+	NetId2: vmr4	 	// Edit
+	Time spent: 20 hours 	// Edit 
+
+/******************
+ * Files to submit
+ ******************/
+
+	dsh.c 	// Header file is not necessary; other *.c files if necessary
+	README	// This file filled with the lab implementation details
+
+/************************
+ * Implementation details
+ *************************/
+
+/* 
+ * This section should contain the implementation details and a overview of the
+ * results. 
+
+ * You are required to provide a good README document including the
+ * implementation details. In particular, you can use pseudocode to describe your
+ * implementation details where necessary. However that does not mean to
+ * copy/paste your C code. Specifically, you should explain details corresponding 
+ * to (1) multiple pipelines (2) logging (3) .c commands compilation and execution. 
+ * We expect the design and implementation details to be at most 1-2 pages.  A
+ * plain textfile is encouraged. However, a pdf is acceptable. No other forms
+ * are permitted.
+
+ * In case of lab is limited in some functionality, you should provide the
+ * details to maximize your partial credit.  
+ * */
+
+Multiple Pipelines:
+After spawning a job, we check if it has multiple processes by looping through the linked list provided by readcmdLine(). We then create a pipe with input and output (0 and 1, respectively) and fork the process to produce a child process that will execute the command. Errors that occur in either of these steps are caught and logged. 
+
+We next classify each process as being either CASE 1 - the first process (read only), CASE 2- an intermediate process (read & write), or CASE 3- the last process (write only) in the sequence. We also check for the special case of a job that has a single process, in which case we close out the pipe completely (we don't need to transfer input/output). We then process each of the individual child process cases:
+
+CASE 1 - We close out the input section of the pipe (it has been read), and copy the file descriptor for the output side of the pipe to the stdout.
+CASE 2 - We first copy the input file descriptor from the parent process, which is the output from the previous process (our pipe is linked so output -> input). We then close out the input section of the pipe (it has been read), and copy the file descriptor for the output side of the pipe to the stdout.
+CASE 3 - We first copy the input file descriptor from the parent process, which is the output from the previous process (our pipe is linked so output -> input). We then close out the input section of the pipe (it has been read).
+
+If it's a parent process, we establish the child process group, then copy over the input side of the pipe and close out the output. 
+
+Logging:
+We use perror() and write() to handle logging errors and status updates, respectively. They are stored in dsh.log.
+
+Auto-Compilation and Execution of C Programs:
+In order to compile and execute a C program we first spawn a two-part job - the first part uses gcc to compile the files and create the executable, which we will then pass to execvp(). These functions will overwrite the cloned memory of the spawned job and return the results of the non-builtin function. 
+
+We hacked the parser - see snippet below. In parse.c in readcmdline we check to see if the command line input contains a .c file. If it does we modify the command line input. 
+For example, if user inputs hello.c, we modify the command line to know be: gcc -o devil devil.c;./devil. In order to implement auto-compilation.
+
+if (endswith(cmdline, ".c\n")) {
+        
+        char *first = "gcc -o devil ";
+        char *second = (char *) malloc(sizeof(cmdline) - 1);
+        strncpy(second, cmdline, strlen(cmdline) - 1);
+        char *third = ";./devil";
+        char *all = (char *) malloc(sizeof(first) + sizeof(second) + sizeof(third));
+        strcpy(all, first);
+        strcat(all, second);
+        strcat(all, third);
+        cmdline = all;
+}
+	
+We didn't implement auto-compilation with semi-colons/pipelining. 
+
+Results:
+We successfully ran the batch file and log process/job statuses & outcomes. 
+
+/************************
+ * Feedback on the lab
+ ************************/
+
+/*
+ * Any comments/questions/suggestions/experiences that you would help us to
+ * improve the lab.
+ * */
+
+I think that this lab was a little long, and by little I mean waaay too long. Additionally, I think that the readings for this lab were not very helpful, figuring out the concepts behind the lab was a struggle. I do not think enough resources were available and I think that more time should have been spent in lecture or recitation discussing these concepts. 
+Also, it was a little confusing that we had to "hack" the parser and other sections of code which did not have the "Your code here?" comments, as they are assumed to be complete code written by you and/or the TA which we will not have to change. 
+That is all...
+
+/************************
+ * References
+ ************************/
+
+/*
+ * List of collaborators involved including any online references/citations.
+ * */
+
+Akshatha Kommalapati, Becky DeNardis, Connor Gordon, Dustin Alin, Joanna Kim, Vamsi Thummala 
+
+Online References: 
+Creating Pipes in C - http://www.tldp.org/LDP/lpg/node11.html
+Pipe, Fork, Exec, & Related Topics - http://www.cs.uleth.ca/~holzmann/C/system/pipeforkexec.html
+Pipes - http://www.cim.mcgill.ca/~franco/OpSys-304-427/lecture-notes/node28.html
+Tutorial: I/O Redirection - http://www.cs.rutgers.edu/~pxk/416/notes/c-tutorials/dup2.html
+Using dup2 for I/O Redirection & Pipes - http://www.cs.loyola.edu/~jglenn/702/S2005/Examples/dup2.html
