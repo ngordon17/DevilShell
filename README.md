@@ -1,4 +1,4 @@
 DevilShell
 ==========
 
-Custom Shell
+Custom shell written in C
